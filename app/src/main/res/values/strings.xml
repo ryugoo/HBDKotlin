@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">HBD Kotlin</string>
+    <string name="happy_birthday_kotlin">HAPPY BIRTHDAY KOTLIN</string>
+    <string name="failed_start_hbd">Kotlin のお祝いができませんでした……</string>
+    <string name="more_happiness">もっと心を込めて！</string>
+    <string name="hbd_type_1">happy birthday ことりん</string>
+    <string name="hbd_type_2">ハッピーバースデー ことりん</string>
+</resources>
