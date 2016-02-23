@@ -6,6 +6,9 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.Toolbar
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.ImageView
 import butterknife.bindView
@@ -17,12 +20,14 @@ import rx.android.schedulers.AndroidSchedulers
 import rx.lang.kotlin.toObservable
 import rx.schedulers.Schedulers
 import timber.log.Timber
+import java.lang.reflect.InvocationTargetException
 
 class MainActivity : AppCompatActivity(), IntentFeature {
   companion object {
     const val VOICE_INPUT_REQUEST = 200
   }
 
+  val toolbar: Toolbar by bindView(R.id.main_toolbar)
   val logo: ImageView by bindView(R.id.main_kotlin_logo)
   val button: Button by bindView(R.id.main_hbd_button)
   var mediaPlayer: MediaPlayer? = null
@@ -33,6 +38,26 @@ class MainActivity : AppCompatActivity(), IntentFeature {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
+    initializeToolbar()
+    initializeListener()
+  }
+
+  override fun onStop() {
+    Timber.d("onStop")
+    releaseMediaPlayer()
+    super.onStop()
+  }
+  //endregion
+
+  //region Initializer
+  private fun initializeToolbar() {
+    setSupportActionBar(toolbar)
+    supportActionBar?.let {
+      it.title = getString(R.string.happy_birthday_kotlin)
+    }
+  }
+
+  private fun initializeListener() {
     button.setOnClickListener {
       try {
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
@@ -55,11 +80,24 @@ class MainActivity : AppCompatActivity(), IntentFeature {
       }
     }
   }
+  //endregion
 
-  override fun onStop() {
-    Timber.d("onStop")
-    releaseMediaPlayer()
-    super.onStop()
+  //region Menu operations
+  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menu?.let {
+      menuInflater.inflate(R.menu.menu_main, it)
+    }
+    return true
+  }
+
+  override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    return when (item?.itemId) {
+      R.id.main_menu_license -> {
+        startActivity(LicenseActivity.createIntent(this))
+        return true
+      }
+      else -> super.onOptionsItemSelected(item)
+    }
   }
   //endregion
 
@@ -82,14 +120,17 @@ class MainActivity : AppCompatActivity(), IntentFeature {
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     Timber.d("onActivityResult")
     super.onActivityResult(requestCode, resultCode, data)
-    if (!ActivityResult.invoke(this, requestCode, resultCode, data)) {
-      Timber.e("Failed onActivityResult")
+    try {
+      if (!ActivityResult.invoke(this, requestCode, resultCode, data)) {
+        Timber.e("Failed onActivityResult")
+      }
+    } catch(ignored: InvocationTargetException) {
     }
   }
 
   @OnActivityResult(VOICE_INPUT_REQUEST)
-  fun onVoiceInput(requestCode: Int, data: Intent) {
-    Timber.d("onVoiceInput")
+  fun onVoiceInput(resultCode: Int, data: Intent) {
+    Timber.d("onVoiceInput = Result code[$resultCode]")
     val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
     results?.let {
       if (it.isEmpty()) return@let
