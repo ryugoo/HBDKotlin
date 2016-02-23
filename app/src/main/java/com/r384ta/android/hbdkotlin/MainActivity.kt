@@ -13,8 +13,8 @@ import com.eaglesakura.android.oari.ActivityResult
 import com.eaglesakura.android.oari.OnActivityResult
 import com.r384ta.android.hbdkotlin.ext.IntentFeature
 import com.r384ta.android.hbdkotlin.ext.toast
-import rx.Observable
 import rx.android.schedulers.AndroidSchedulers
+import rx.lang.kotlin.toObservable
 import rx.schedulers.Schedulers
 import timber.log.Timber
 
@@ -91,33 +91,36 @@ class MainActivity : AppCompatActivity(), IntentFeature {
   fun onVoiceInput(requestCode: Int, data: Intent) {
     Timber.d("onVoiceInput")
     val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-    Observable.from(results)
-      .reduce { s1: String?, s2: String? -> "${s1 ?: ""}${s2 ?: ""}" }
-      .map {
-        it.contains(getString(R.string.hbd_type_1)) || it.contains(getString(R.string.hbd_type_2))
-      }
-      .subscribeOn(Schedulers.computation())
-      .observeOn(AndroidSchedulers.mainThread())
-      .subscribe({ success ->
-        if (success) {
-          Timber.d("(∩´∀｀)∩ﾜｰｲ")
-
-          // Play music
-          assets.openFd("hbd_kotlin.m4a").use { fd ->
-            releaseMediaPlayer()
-            mediaPlayer = MediaPlayer()
-            mediaPlayer?.let { mp ->
-              mp.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
-              mp.setOnSeekCompleteListener { releaseMediaPlayer() }
-              mp.prepare()
-              mp.start()
-            }
-          }
-        } else {
-          Timber.d("(´・ω・｀)")
-          toast(R.string.more_happiness)
+    results?.let {
+      if (it.isEmpty()) return@let
+      it.toObservable()
+        .reduce { s1: String?, s2: String? -> "${s1 ?: ""}${s2 ?: ""}" }
+        .map { text ->
+          text.contains(getString(R.string.hbd_type_1)) || text.contains(getString(R.string.hbd_type_2))
         }
-      })
+        .subscribeOn(Schedulers.computation())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe({ success ->
+          if (success) {
+            Timber.d("(∩´∀｀)∩ﾜｰｲ")
+
+            // Play music
+            assets.openFd("hbd_kotlin.m4a").use { fd ->
+              releaseMediaPlayer()
+              mediaPlayer = MediaPlayer()
+              mediaPlayer?.let { mp ->
+                mp.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
+                mp.setOnSeekCompleteListener { releaseMediaPlayer() }
+                mp.prepare()
+                mp.start()
+              }
+            }
+          } else {
+            Timber.d("(´・ω・｀)")
+            toast(R.string.more_happiness)
+          }
+        })
+    }
   }
   //endregion
 }
