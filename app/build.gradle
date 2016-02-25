@@ -11,7 +11,7 @@ def packageName = "com.r384ta.android.hbdkotlin" // input here
 
 // Library version
 ext {
-  support_lib_version = '23.1.1'
+  support_lib_version = '23.2.0'
 }
 
 android {
@@ -73,7 +73,7 @@ dependencies {
 
   // Rx
   compile 'io.reactivex:rxandroid:1.1.0'
-  compile 'io.reactivex:rxjava:1.1.0'
+  compile 'io.reactivex:rxjava:1.1.1'
   compile 'io.reactivex:rxkotlin:0.40.1'
 
   // Kotlin

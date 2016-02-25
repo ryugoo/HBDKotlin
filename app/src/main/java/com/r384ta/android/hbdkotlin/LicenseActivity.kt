@@ -35,7 +35,7 @@ class LicenseActivity : AppCompatActivity() {
   private fun initializeToolbar() {
     setSupportActionBar(toolbar)
     supportActionBar?.let {
-      it.title = getString(R.string.license)
+      it.title = getString(R.string.version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
   }
 
